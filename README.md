@@ -1,81 +1,94 @@
-
 # xAI Project: Explainable AI & Model Diagnostics
 
-This repository hosts a comprehensive Computer Vision project built on TensorFlow. It goes beyond simple image classification by integrating **Explainable AI (xAI)** techniques to audit model performance and understand the decision-making logic of deep neural networks.
+This repository hosts a comprehensive Computer Vision project built on TensorFlow. It goes beyond simple image classification by integrating **Explainable AI (xAI)** techniques to audit model performance and bridge the **"Reality Gap"** between lab benchmarks and real-world deployment.
 
 ## 🚀 1. Project Philosophy: Transparency in AI
 
 Modern deep learning models are often "black boxes." This project aims to peel back the layers by answering three critical questions:
 
-1. **What** did the model see? (Feature extraction)
+1. **What** did the model see? (Feature extraction & PCA)
 2. **Where** did it look? (Grad-CAM heatmaps)
-3. **Why** did it fail? (Error analysis & Calibration)
+3. **Why** did it fail? (Context bias & Calibration audit)
 
 ---
 
 ## 🏗️ 2. The Technical Pipeline
 
-### A. Data Engineering & Augmentation
+### A. Dataset & Augmentation (ImageNet-1K Subset)
 
-The project utilizes a 1.47GB subset of ImageNet. To prevent the model from simply "memorizing" the training data, we implement a **Stochastic Augmentation Pipeline**.
+We utilized a subset of **ImageNet-1K** containing 10 distinct classes, including **Remote control, Mouse, Keyboard, Wooden spoon, Coffee mug, and Mushroom**.
 
-* **Mechanism**: Each image is randomly altered during every epoch (rotation, zoom, flip).
-* **Benefit**: This forces the model to learn the *essential features* of an object (e.g., the shape of a bucket) rather than specific pixel locations or lighting conditions.
+* **Scale**: 13,000 training images and 500 test images.
+* **Stochastic Augmentation**: To prevent "memorization," we implemented rotation, horizontal flips, zoom, and brightness adjustments.
+* **Resizing**: A critical step in our pipeline was **resizing all images to ** to meet the specific input requirements of the **MobileNetV2** architecture.
 
-### B. Exploratory Feature Topology (PCA)
+*Fig 1: Distribution of the 10 ImageNet-1K classes.*
 
-Before the first training step, we perform a "vibe check" on our data using **Principal Component Analysis (PCA)**.
+### B. Three-Tier Evaluation Strategy
 
-* **The Process**: We pass images through a pre-trained **MobileNetV2** (acting as a feature extractor) and reduce the resulting high-dimensional tensors into a 2D plot.
-* **Goal**: If classes (like "Hammer" and "Bucket") are already clustered separately in 2D space, the model will have an easier time learning. If they overlap heavily, we know to expect high confusion.
+We performed a deep dive into model robustness across three stages:
 
-### C. Transfer Learning Strategy
+1. **Validation Performance**: Standard accuracy check during training (~84%).
+2. **Subset Test Performance**: Performance on the "unseen" ImageNet-1K test folders.
+3. **The "Reality Check" (Custom Real-World Data)**: We introduced a completely independent real-world dataset.
+* **Result**: We observed a **42% performance drop** (Accuracy fell to 41.8%).
+* **Insight**: This "Reality Gap" showed that the model struggled significantly with real-world noise it hadn't encountered during training.
 
-We utilize **Transfer Learning** to leverage the "knowledge" of models trained on millions of images.
 
-* **Backbones**: We benchmark **MobileNetV2** (optimized for speed/mobile) against **ResNet50** (optimized for depth and accuracy via residual connections).
-* **Architecture**: We freeze the base layers to keep the pre-trained features and only train a custom "Head" consisting of Global Average Pooling, a Dense layer ( units), and Dropout () to prevent overfitting.
+
+### C. Architecture Benchmark: MobileNetV2 vs. ResNet50
+
+| Model | Architecture | Accuracy | Conclusion |
+| --- | --- | --- | --- |
+| **MobileNetV2** | Lightweight | **~84%** | Stable; best for this data volume. |
+| **ResNet50** | Deep Residual | **~30%** | Failed to converge; too complex for this subset. |
 
 ---
 
 ## 🔍 3. Explainable AI (xAI) Suite
 
-### Grad-CAM: Visualizing Attention
+### Grad-CAM: Visualizing Attention & Background Bias
 
-We implement **Gradient-weighted Class Activation Mapping (Grad-CAM)**. This technique produces a heatmap that highlights the specific pixels that contributed most to the model's final prediction.
+*Fig 2: Heatmaps showing model focus on objects vs. background textures.*
 
-* **Interpretation**: If the model predicts "Dog" but the heatmap is glowing on the "Grass" in the background, we know the model has learned a "spurious correlation" rather than the actual object.
+We used **Grad-CAM** to "debug" why the model failed the real-world stress test.
 
-### Model Calibration & Confidence
+* **Discovery**: The model often ignored the object (e.g., the Remote Control) and focused on **background textures** like wood grain or metal grilles. This "Context Bias" was the primary reason for the drop in robustness.
 
-We use **Calibration Curves** to measure the model's "self-awareness."
+### Model Calibration & "Confident Failures"
 
-* **Overconfidence**: A common issue where a model predicts a class with 99.9% confidence but is actually wrong.
-* **Ambiguity Audit**: The notebook programmatically identifies these "confident failures" for manual inspection, which is critical for safety-sensitive AI applications.
+We audited the model's "self-awareness."
 
----
-
-## 📊 4. Performance Metrics
-
-| Tool | Purpose |
-| --- | --- |
-| **Normalized Confusion Matrix** | Identifies which specific classes are being swapped (e.g., Binder vs. Notebook). |
-| **F1-Score Analysis** | A balanced metric that accounts for both Precision and Recall, especially on our "Hard" test set. |
-| **Hard vs. Easy Grid** | A side-by-side visual comparison of images the model found trivial vs. those that caused low confidence. |
+* **The Problem**: On hard real-world data, the model exhibited extreme **Overconfidence**, labeling items incorrectly (e.g., Keyboard  Mouse) with **96-100% confidence**.
 
 ---
 
-## 🛠️ 5. Getting Started
+## 🛠️ 4. Getting Started
 
 1. **Clone the Repository**:
+
 ```bash
 git clone https://github.com/Synaptic-Sparks/synaptic-sparks-code.git
 
 ```
 
-
 2. **Environment**: Open `xAI_Proj.ipynb` in **Google Colab**.
-3. **Run All**: The notebook includes an automated `gdown` script that handles the 1.47GB dataset download and extraction for you.
+3. **Data Access**: The notebook includes an automated `gdown` script for the 1.47GB dataset.
+
+---
+
+## 📬 5. Contact Information
+
+* **Zeeshan Ahmed**
+* Role: Lead Developer / Model Architecture
+* GitHub: [github.com/ZeeshanAhmed](https://github.com/Zeeshan6948)
+
+
+* **Muhammad Uzair Janjua**
+* Role: Data Engineer / xAI Specialist
+* GitHub: [github.com/UzairJanjua](https://github.com/uzairjanjua1)
+
+
 
 ---
 
@@ -84,7 +97,7 @@ git clone https://github.com/Synaptic-Sparks/synaptic-sparks-code.git
 This project is licensed under the **MIT License**.
 
 ```text
-Copyright (c) 2024 Synaptic Sparks
+Copyright (c) 2026 Synaptic Sparks
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -95,13 +108,5 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 
 ```
