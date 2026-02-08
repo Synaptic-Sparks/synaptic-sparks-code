@@ -1,79 +1,257 @@
 # xAI Project: Explainable AI & Model Diagnostics
 
-This repository hosts a comprehensive Computer Vision project built on TensorFlow. It goes beyond simple image classification by integrating **Explainable AI (xAI)** techniques to audit model performance and bridge the **"Reality Gap"** between lab benchmarks and real-world deployment.
+This repository hosts a comprehensive **Computer Vision** project built on **TensorFlow**, focused on both **model performance** and **Explainable AI (xAI)** analysis.
+Rather than stopping at accuracy, this project investigates **how**, **where**, and **why** a model succeeds or fails — especially when transitioning from controlled datasets to real-world images.
+
+---
 
 ## 🚀 1. Project Philosophy: Transparency in AI
 
-Modern deep learning models are often "black boxes." This project aims to peel back the layers by answering three critical questions:
+Modern deep learning models often behave like **black boxes**. This project aims to make model behavior **interpretable, auditable, and trustworthy** by answering three core questions:
 
-1. **What** did the model see? (Feature extraction & PCA)
-2. **Where** did it look? (Grad-CAM heatmaps)
-3. **Why** did it fail? (Context bias & Calibration audit)
+* **What did the model learn?**
+  Feature visualization using **PCA (Principal Component Analysis)**
+
+* **Where did the model focus?**
+  Visual attention analysis using **Grad-CAM**
+
+* **Why did the model fail?**
+  Error analysis via **calibration curves**, **confusion matrices**, and **class difficulty inspection**
 
 ---
 
-## 🏗️ 2. The Technical Pipeline
+## 🏗️ 2. Technical Pipeline
 
 ### A. Dataset & Augmentation (ImageNet-1K Subset)
 
-We utilized a subset of **ImageNet-1K** containing 10 distinct classes, including **Remote control, Mouse, Keyboard, Wooden spoon, Coffee mug, and Mushroom**.
+We used a curated subset of **ImageNet-1K**, consisting of **10 object classes**, including:
 
-* **Scale**: 13,000 training images and 500 test images.
-* **Stochastic Augmentation**: To prevent "memorization," we implemented rotation, horizontal flips, zoom, and brightness adjustments.
-* **Resizing**: A critical step in our pipeline was **resizing all images to ** to meet the specific input requirements of the **MobileNetV2** architecture.
+* Remote Control
+* Mouse
+* Keyboard
+* Wooden Spoon
+* Coffee Mug
+* *(and additional everyday object classes)*
 
-*Fig 1: Distribution of the 10 ImageNet-1K classes.*
+**Dataset Scale**
 
-### B. Three-Tier Evaluation Strategy
+* Training Images: ~13,000
+* Test Images: ~500
 
-We performed a deep dive into model robustness across three stages:
+**Image Source**
 
-1. **Validation Performance**: Standard accuracy check during training (~84%).
-2. **Subset Test Performance**: Performance on the "unseen" ImageNet-1K test folders.
-3. **The "Reality Check" (Custom Real-World Data)**: We introduced a completely independent real-world dataset.
-* **Result**: We observed a **42% performance drop** (Accuracy fell to 41.8%).
-* **Insight**: This "Reality Gap" showed that the model struggled significantly with real-world noise it hadn't encountered during training.
+* ImageNet-1K
+* 📎 **Dataset Download Link:** *[[dataset link here]](https://vc.uni-bamberg.de/mod/resource/view.php?id=2076765)*
+
+**Data Augmentation Techniques**
+To improve generalization and reduce overfitting:
+
+* Rotation
+* Horizontal flipping
+* Zoom
+* Brightness adjustment
+* **Resizing to 224×224 (required for MobileNetV2)**
+
+> ⚠️ **Note:** Image resizing is a critical preprocessing step because **MobileNetV2 requires a fixed input shape of 224×224**.
+
+**📊 Class Distribution**
 
 
+![Class Distribution](images/Distribution_of_images.png)
 
-### C. Architecture Benchmark: MobileNetV2 vs. ResNet50
-
-| Model | Architecture | Accuracy | Conclusion |
-| --- | --- | --- | --- |
-| **MobileNetV2** | Lightweight | **~84%** | Stable; best for this data volume. |
-| **ResNet50** | Deep Residual | **~30%** | Failed to converge; too complex for this subset. |
 
 ---
 
-## 🔍 3. Explainable AI (xAI) Suite
+### B. Three-Tier Evaluation Strategy
 
-### Grad-CAM: Visualizing Attention & Background Bias
+We evaluated model robustness across **three increasingly realistic stages**:
 
-*Fig 2: Heatmaps showing model focus on objects vs. background textures.*
+1. **Validation Performance**
 
-We used **Grad-CAM** to "debug" why the model failed the real-world stress test.
+   * Standard evaluation during training
+   * Accuracy stabilized at ~84%
 
-* **Discovery**: The model often ignored the object (e.g., the Remote Control) and focused on **background textures** like wood grain or metal grilles. This "Context Bias" was the primary reason for the drop in robustness.
+2. **Subset Test Performance**
 
-### Model Calibration & "Confident Failures"
+   * Tested on unseen ImageNet-1K folders
+   * Minor performance degradation
 
-We audited the model's "self-awareness."
+3. **Reality Check (Custom Real-World Images)**
 
-* **The Problem**: On hard real-world data, the model exhibited extreme **Overconfidence**, labeling items incorrectly (e.g., Keyboard  Mouse) with **96-100% confidence**.
+   * Independent images captured in real environments
+
+**Result**
+
+* Accuracy dropped to **41.8%**
+* Performance loss: **~42%**
+
+**Key Insight**
+This highlights the **Reality Gap** — models trained on clean datasets struggle when exposed to **real-world noise, cluttered backgrounds, and lighting variations**.
+
+---
+
+### C. Architecture Benchmark
+
+| Model       | Architecture      | Accuracy | Conclusion                      |
+| ----------- | ----------------- | -------- | ------------------------------- |
+| MobileNetV2 | Lightweight CNN   | ~84%     | Stable and efficient            |
+| ResNet50    | Deep Residual CNN | ~30%     | Overfitting; failed to converge |
+
+**Why MobileNetV2?**
+
+* Better suited for limited data
+* Faster convergence
+* More stable training behavior
+
+---
+
+## 🔍 3. Explainable AI (xAI) Analysis Suite
+
+---
+
+### 3.1 Feature Visualization using PCA
+
+We applied **Principal Component Analysis (PCA)** to intermediate feature embeddings extracted from the model.
+
+**Why PCA?**
+
+* Reduces high-dimensional features to 2D/3D
+* Reveals **class separability**
+* Shows how well the model clusters similar objects
+
+**What it shows**
+
+* Overlapping clusters → class confusion
+* Compact clusters → strong feature learning
+
+
+![Class Distribution](images/PCA_Feature_Visualization.png)
+
+---
+
+### 3.2 Training Performance (10 Epochs)
+
+We trained MobileNetV2 for **10 epochs** and tracked:
+
+* Training Accuracy vs Validation Accuracy
+* Training Loss vs Validation Loss
+
+**Why this matters**
+
+* Detects **overfitting** or **underfitting**
+* Shows training stability and convergence
+
+![Class Distribution](images/Accuracy_Loss_Epochs.png)
+
+---
+
+### 3.3 Hardest & Easiest Class Analysis
+
+We identified:
+
+* **Easiest class:** Highest accuracy & lowest confusion
+* **Hardest class:** Lowest accuracy & highest misclassification
+
+**Why analyze this?**
+
+* Reveals class ambiguity
+* Highlights dataset imbalance or visual similarity
+* Guides targeted data collection or augmentation
+
+
+![Class Distribution](images/Easiest_Class.png)
+
+![Class Distribution](images/Hardest_Class.png)
+
+---
+
+### 3.4 Grad-CAM: Attention & Context Bias
+
+Grad-CAM heatmaps were used to visualize **where the model looks** when making predictions.
+
+**Key Discovery**
+
+* The model often focused on **background textures** (wood grain, table patterns)
+* Ignored the actual object (e.g., Remote Control)
+
+**Impact**
+
+* Major contributor to poor real-world performance
+* Indicates **context bias**
+
+```
+[Image Placeholder – Grad-CAM Heatmaps]
+```
+
+---
+
+### 3.5 Model Calibration Curve
+
+We analyzed how **confident** the model is compared to how **accurate** it actually is.
+
+**What is calibration?**
+
+* A well-calibrated model’s confidence matches its correctness
+* Overconfident models fail silently
+
+**Observed Issue**
+
+* Incorrect predictions made with **96–100% confidence**
+
+```
+[Image Placeholder – Model Calibration Curve]
+```
+
+---
+
+### 3.6 Confusion Matrix (MobileNetV2 – 10 Classes)
+
+A confusion matrix shows:
+
+* True labels vs predicted labels
+* Which classes are commonly confused
+
+**Why it matters**
+
+* Pinpoints systematic misclassification
+* Reveals visually similar classes (e.g., Keyboard vs Mouse)
+
+
+![Class Distribution](images/Confusion_Matrix.png)
+
+---
+
+### 3.7 Precision, Recall & F1-Score (Bar Chart)
+
+We computed **Precision, Recall, and F1-Score** for all 10 classes.
+
+**Metric Meaning**
+
+* **Precision:** How many predicted positives are correct
+* **Recall:** How many actual positives were detected
+* **F1-Score:** Balance between precision and recall
+
+**Why this is important**
+
+* Accuracy alone can be misleading
+* Class-wise metrics expose hidden weaknesses
+
+![Class Distribution](images/Precision_Recall_F1-Score.png)
 
 ---
 
 ## 🛠️ 4. Getting Started
 
-1. **Clone the Repository**:
+**Clone the Repository**
 
 ```bash
 git clone https://github.com/Synaptic-Sparks/synaptic-sparks-code.git
-
 ```
 
-2. **Environment**: Open `xAI_Proj.ipynb` in **Google Colab**.
-3. **Data Access**: The notebook includes an automated `gdown` script for the 1.47GB dataset.
+**Run the Notebook**
+
+* Open `xAI_Proj.ipynb` in **Google Colab**
+* Dataset downloads automatically using `gdown`
 
 ---
 
@@ -91,22 +269,18 @@ git clone https://github.com/Synaptic-Sparks/synaptic-sparks-code.git
 
 
 ---
-
 ## ⚖️ 6. License
 
 This project is licensed under the **MIT License**.
 
-```text
-Copyright (c) 2026 Synaptic Sparks
+```
+Copyright (c) 2026
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
+copies of the Software.
 ```
+
+---
