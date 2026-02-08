@@ -92,16 +92,17 @@ This highlights the **Reality Gap** — models trained on clean datasets struggl
 
 ### C. Architecture Benchmark
 
-| Model       | Architecture      | Accuracy | Conclusion                      |
-| ----------- | ----------------- | -------- | ------------------------------- |
-| MobileNetV2 | Lightweight CNN   | ~84%     | Stable and efficient            |
-| ResNet50    | Deep Residual CNN | ~30%     | Overfitting; failed to converge |
+| Model       | Architecture      | Validation Accuracy | Conclusion                                                                                                                                                                     |
+| ----------- | ----------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| MobileNetV2 | Lightweight CNN   | ~83–85%             | Stable performance; good lightweight alternative                                                                                                                               |
+| ResNet50    | Deep Residual CNN | ~86–88%             | **Consistently outperforms MobileNetV2; no convergence issues; dataset sufficient for higher-capacity model. Selected as final model. Minor mid-epoch dip recovered quickly.** |
 
-**Why MobileNetV2?**
+**Analysis**
 
-* Better suited for limited data
-* Faster convergence
-* More stable training behavior
+* ResNet50 achieves higher validation accuracy than MobileNetV2
+* No training instability or failed convergence observed
+* Dataset size is sufficient to train a larger model
+* MobileNetV2 remains as a **lightweight alternative** for faster inference or smaller deployments
 
 ---
 
