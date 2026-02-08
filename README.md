@@ -179,10 +179,7 @@ Grad-CAM heatmaps were used to visualize **where the model looks** when making p
 * Major contributor to poor real-world performance
 * Indicates **context bias**
 
-```
-[Image Placeholder – Grad-CAM Heatmaps]
-```
-
+![Class Distribution](images/Grad-CAM_Heatmaps.png)
 ---
 
 ### 3.5 Model Calibration Curve
@@ -198,9 +195,7 @@ We analyzed how **confident** the model is compared to how **accurate** it actua
 
 * Incorrect predictions made with **96–100% confidence**
 
-```
-[Image Placeholder – Model Calibration Curve]
-```
+![Class Distribution](images/Model_Calibration.png)
 
 ---
 
